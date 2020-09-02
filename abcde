@@ -396,6 +396,9 @@ checkexec ()
 					lame|flac|cd-discid|eject|mkcue|icedax|glyrc)
 						MISSING_PACKAGE=$X
 						;;
+					mp4tags)
+					    MISSINNG_PACKAGE=libmp4v2
+					    ;;
 				esac
 				log info "Hint: sudo apt-get install $MISSING_PACKAGE" >&2
 			fi
@@ -1063,7 +1066,15 @@ do_tag ()
 								-meta:year="$CDYEAR" -meta:genre="$CDGENRE" -meta:comment="$COMMENT"
 					;;
 				faac)
-					run_command "tagtrack-$OUTPUT-$1" true
+					DISCARG=
+					case $DISCNUMBER in
+					    ''|*[!0-9]*) true ;;
+						*) DISCARG="-d${DISCNUMBER}" ;;
+					esac
+					run_command "tagtrack-$OUTPUT-$1" nice $ENCNICE "$MP4TAGS" \
+					            -A "$DALBUM" -a "$TRACKARTIST" $DISCARG \
+					            -s "$TRACKNAME" -t "${TRACKNUM:-$1}" -T "$TRACKS" \
+					            -g "$CDGENRE" -y "$CDYEAR" "${ABCDETEMPDIR}/track$1.m4a"
 					;;
 				qaac)
 					run_command "tagtrack-$OUTPUT-$1" true
@@ -3893,6 +3904,7 @@ METAFLAC=metaflac
 NEROAACTAG=neroAacTag
 ATOMICPARSLEY=AtomicParsley
 WVTAG=wvtag
+MP4TAGS=mp4tags
 
 WINE=wine
 CDPARANOIA=cdparanoia
@@ -4598,7 +4610,7 @@ do
 			;;
 		m4a)
 			[ "$AACENCODERSYNTAX" = "default" ] && AACENCODERSYNTAX=fdkaac
-			[ "$AACENCODERSYNTAX" = "faac" ] && [ "$DOTAG" = "y" ] && CHECKFAACBUILD=y	
+			[ "$AACENCODERSYNTAX" = "faac" ] && [ "$DOTAG" = "y" ] && CHECKFAACBUILD=y && NEEDMP4TAGS=y
 			[ "$AACENCODERSYNTAX" = "neroAacEnc" ] && NEEDNEROAACTAG=y
 			[ "$AACENCODERSYNTAX" = "qaac" ] && NEEDWINE=y
 			[ "$AACENCODERSYNTAX" = "fhgaacenc" ] && NEEDWINE=y && NEEDATOMICPARSLEY=y
@@ -5023,7 +5035,8 @@ for X in $CDROMREADER $CDDISCID ${NEEDTAGGER+$TAGGER} $MP3ENCODER \
 	${NEEDWVGAIN+WVGAIN} ${NEEDAPETAG+$APETAG} \
 	${NEEDCUE2DISCID+$CUE2DISCID} ${NEEDNEROAACTAG+$NEROAACTAG} \
 	${NEEDGLYRC+$GLYRC} ${NEEDWINE+$WINE} ${NEEDATOMICPARSLEY+$ATOMICPARSLEY} \
-	${NEEDMID3V2+$MID3V2} ${NEEDEYED3+$EYED3} ${NEEDWVTAG+$WVTAG}
+	${NEEDMID3V2+$MID3V2} ${NEEDEYED3+$EYED3} ${NEEDWVTAG+$WVTAG} \
+	${NEEDMP4TAGS+$MP4TAGS}
 do
 	checkexec "$X"
 done
