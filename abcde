@@ -1071,9 +1071,13 @@ do_tag ()
 					    ''|*[!0-9]*) true ;;
 						*) DISCARG="-d${DISCNUMBER}" ;;
 					esac
+					UNPADDED_TRACK=${TRACKNUM}
+					if [ -n "$DISCNUMBER" ]; then
+						UNPADDED_TRACK=$(echo -n $TRACKNUM|sed -e "s/^${DISCNUMBER}0*//")
+					fi
 					run_command "tagtrack-$OUTPUT-$1" nice $ENCNICE "$MP4TAGS" \
 					            -A "$DALBUM" -a "$TRACKARTIST" $DISCARG \
-					            -s "$TRACKNAME" -t "${TRACKNUM:-$1}" -T "$TRACKS" \
+					            -s "$TRACKNAME" -t "${UNPADDED_TRACK:-$1}" -T "$TRACKS" \
 					            -g "$CDGENRE" -y "$CDYEAR" "${ABCDETEMPDIR}/track$1.m4a"
 					;;
 				qaac)
